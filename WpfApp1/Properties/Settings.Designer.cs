@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Restaurant.UI.Properties
+namespace WpfApp1.Properties
 {
 
 
