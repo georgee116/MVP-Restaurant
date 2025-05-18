@@ -1,12 +1,169 @@
 ﻿<Window x:Class="Restaurant.UI.Modern.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Restaurant.UI.Modern"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        xmlns:vm="clr-namespace:Restaurant.ViewModels;assembly=Restaurant.ViewModels"
+        Title="Restaurant Manager" Height="600" Width="800">
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
 
+    <Grid Margin="10">
+        <TabControl>
+
+            <!-- A L E R G E N I -->
+            <TabItem Header="Alergeni">
+                <Grid DataContext="{Binding AlergenVM}" Margin="0,0,0,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,5">
+                        <Button Content="Încarcă" Command="{Binding LoadCommand}" Width="75"/>
+                        <TextBox Width="200"
+                     Margin="10,0,0,0"
+                     Text="{Binding NewAlergenNume, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Nume nou alergen"/>
+                        <Button Content="Adaugă" Command="{Binding AddCommand}" Width="75" Margin="5,0,0,0"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1"
+                    ItemsSource="{Binding Alergeni}"
+                    AutoGenerateColumns="False"
+                    SelectedItem="{Binding SelectedAlergen}"
+                    CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Id"   Binding="{Binding Id}"   Width="50"/>
+                            <DataGridTextColumn Header="Nume" Binding="{Binding Nume}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Right" Margin="0,5,0,0">
+                        <Button Content="Actualizează" Command="{Binding UpdateCommand}" Width="100"
+                    IsEnabled="{Binding SelectedAlergen, Converter={StaticResource NullToBool}}"/>
+                        <Button Content="Șterge"        Command="{Binding DeleteCommand}" Width="75" Margin="5,0,0,0"
+                    IsEnabled="{Binding SelectedAlergen, Converter={StaticResource NullToBool}}"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- M E N I U -->
+            <TabItem Header="Meniu">
+                <Grid DataContext="{Binding MeniuVM}" Margin="0,0,0,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,5">
+                        <Label Content="Meniu ID:" VerticalAlignment="Center"/>
+                        <TextBox Width="60"
+                     Margin="5,0,0,0"
+                     Text="{Binding SelectedMeniuId, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button Content="Încarcă" Command="{Binding LoadMeniuCommand}" Width="75" Margin="5,0,0,0"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1"
+                    x:Name="dgMeniu"
+                    ItemsSource="{Binding Items}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    Margin="0,0,0,5">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Preparat" Binding="{Binding Preparat}" Width="*"/>
+                            <DataGridTextColumn Header="Gramaj"   Binding="{Binding GramajPortie}" Width="80"/>
+                            <DataGridTextColumn Header="Preț"      Binding="{Binding Subtotal, StringFormat=C}" Width="80"/>
+                            <DataGridTemplateColumn Header="Acțiuni" Width="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Șterge"
+                            Command="{Binding DataContext.RemoveFromMeniuCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,5,0,0">
+                        <ComboBox Width="200"
+                      ItemsSource="{Binding AllPreparate}"
+                      DisplayMemberPath="Denumire"
+                      SelectedItem="{Binding SelectedPreparat}"/>
+                        <TextBox Width="60"
+                     Margin="5,0,0,0"
+                     Text="{Binding CantPortie, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Gramaj în grame"/>
+                        <Button Content="Adaugă" Command="{Binding AddToMeniuCommand}" Width="75" Margin="5,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- C O M E N Z I -->
+            <TabItem Header="Comenzi">
+                <Grid DataContext="{Binding ComandaVM}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,5">
+                        <Label Content="User ID:" VerticalAlignment="Center"/>
+                        <TextBox Width="60"
+                     Margin="5,0,0,0"
+                     Text="{Binding UtilizatorId, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button Content="Începe comandă"
+                    Command="{Binding StartOrderCommand}"
+                    Width="120" Margin="5,0,0,0"/>
+                    </StackPanel>
+
+                    <!-- ItemsSource must bind to a collection: ComandaVM.Items -->
+                    <DataGrid Grid.Row="1"
+                    ItemsSource="{Binding Items}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    Margin="0,0,0,5">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Preparat/Meniu"
+                                  Binding="{Binding PreparatId}" Width="*"/>
+                            <DataGridTextColumn Header="Cantitate"
+                                  Binding="{Binding Cantitate}" Width="60"/>
+                            <DataGridTextColumn Header="Gramaj"
+                                  Binding="{Binding CantitatePortie}" Width="80"/>
+                            <DataGridTextColumn Header="Preț"
+                                  Binding="{Binding PretUnitate, StringFormat=C}" Width="80"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,5,0,0">
+                        <!-- Example: only preparate dropdown; to add meniuri you'd need a SelectedMeniuForOrder property -->
+                        <ComboBox Width="150"
+                      ItemsSource="{Binding AllPreparate}"
+                      DisplayMemberPath="Denumire"
+                      SelectedItem="{Binding SelectedPreparatForOrder}"/>
+                        <TextBox  Width="50" Margin="5,0,0,0"
+                     Text="{Binding NewItemCantitate, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Cantitate"/>
+                        <TextBox  Width="60" Margin="5,0,0,0"
+                     Text="{Binding NewItemCantPortie, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Gramaj"/>
+                        <TextBox  Width="70" Margin="5,0,0,0"
+                     Text="{Binding NewItemPretUnitate, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Preț/unitate"/>
+                        <Button Content="Adaugă articol"
+                    Command="{Binding AddItemCommand}"
+                    Width="100" Margin="5,0,0,0"/>
+                        <Button Content="Trimite comandă"
+                    Command="{Binding PlaceOrderCommand}"
+                    Width="100" Margin="5,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
     </Grid>
 </Window>

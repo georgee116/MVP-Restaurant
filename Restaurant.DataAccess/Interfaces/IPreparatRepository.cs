@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Restaurant.Domain.Entities;
 
 namespace Restaurant.DataAccess.Interfaces
 {
-    internal class IPreparatRepository
+    public interface IPreparatRepository : IRepository<Preparat>
     {
+        
     }
 }

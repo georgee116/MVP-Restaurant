@@ -8,4 +8,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Restaurant.ViewModels\Restaurant.ViewModels.csproj" />
+  </ItemGroup>
+
 </Project>

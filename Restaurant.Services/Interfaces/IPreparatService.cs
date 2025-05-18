@@ -1,12 +1,16 @@
-﻿using System;
+﻿// Restaurant.Services/Interfaces/IPreparatService.cs
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Restaurant.Domain.Entities;
 
 namespace Restaurant.Services.Interfaces
 {
-    internal class IPreparatService
+    public interface IPreparatService
     {
+        Task<IEnumerable<Preparat>> GetAllAsync();
+        Task<Preparat?> GetByIdAsync(int id);
+        Task AddAsync(Preparat preparat);
+        Task UpdateAsync(Preparat preparat);
+        Task DeleteAsync(int id);
     }
 }
