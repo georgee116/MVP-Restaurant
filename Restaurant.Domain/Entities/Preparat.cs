@@ -14,5 +14,7 @@ namespace Restaurant.Domain.Entities
         public Categorie Categorie { get; set; }
 
         public ICollection<ImaginePreparat> Imagini { get; set; }
+        public ICollection<PreparatAlergen> Alergeni { get; set; }
+        public ICollection<PreparatMeniu> Meniuri { get; set; }
     }
 }
