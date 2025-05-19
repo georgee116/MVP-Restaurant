@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿// Restaurant.UI.Modern/LoginWindow.xaml.cs
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Restaurant.Domain.Entities;
@@ -12,12 +13,19 @@ namespace Restaurant.UI.Modern
         public LoginWindow()
         {
             InitializeComponent();
-            // te abonezi la eveniment
+
             if (DataContext is LoginViewModel vm)
+            {
                 vm.LoginSucceeded += OnLoginSucceeded;
+                vm.RegistrationRequested += () =>
+                {
+                    var rw = new RegistrationWindow();
+                    rw.Owner = this;
+                    rw.ShowDialog();
+                };
+            }
         }
 
-        // când LoginSucceeded e invocat de VM, deschizi MainWindow
         private void OnLoginSucceeded(Utilizator? user, UserRole role)
         {
             var main = new MainWindow();

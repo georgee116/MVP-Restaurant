@@ -1,11 +1,11 @@
-﻿// Restaurant.ViewModels/ComandaViewModel.cs
+﻿using System;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Restaurant.Domain.Entities;
 using Restaurant.Domain.DTOs;
+using Restaurant.Domain.Entities;
+using Restaurant.Domain.Enums;
 using Restaurant.Services.Services;
 using Restaurant.ViewModels.Common;
 
@@ -14,51 +14,62 @@ namespace Restaurant.ViewModels
     public class ComandaViewModel : BaseViewModel
     {
         private readonly StoredProceduresService _spService = new();
-        private readonly ComandaService _cService = new();
+        private readonly MeniuService _meniuService = new();
 
         public ObservableCollection<ComandaItem> Items { get; } = new();
-        public ObservableCollection<Preparat> AllPreparate { get; } = new();
-        public ObservableCollection<Meniu> AllMeniuri { get; } = new();
+        public Comanda? CurrentOrder { get; private set; }
 
-        private int _utilizatorId;
-        public int UtilizatorId
-        {
-            get => _utilizatorId;
-            set { _utilizatorId = value; OnPropertyChanged(); }
-        }
-
-        private Comanda? _currentOrder;
-        public Comanda? CurrentOrder
-        {
-            get => _currentOrder;
-            set { _currentOrder = value; OnPropertyChanged(); }
-        }
-
+        // 1) Comanda începe cu această comandă
         public ICommand StartOrderCommand { get; }
-        public ICommand AddItemCommand { get; }
+
+        // 2) Adaugă un meniu întreg în comandă (param = Meniu)
+        public ICommand AddMenuToOrderCommand { get; }
+
+        // 3) Trimite comanda către SP
         public ICommand PlaceOrderCommand { get; }
 
         public ComandaViewModel()
         {
             StartOrderCommand = new RelayCommand(_ =>
             {
-                CurrentOrder = new Comanda { UtilizatorId = UtilizatorId, DataComenzii = DateTime.Now };
+                CurrentOrder = new Comanda
+                {
+                    UtilizatorId = 0, // setează după nevoie
+                    DataComenzii = DateTime.Now
+                };
                 Items.Clear();
-            }, _ => UtilizatorId > 0);
+                RaiseCanExec();
+            }, _ => CurrentOrder == null);
 
-            AddItemCommand = new RelayCommand(async param =>
+            AddMenuToOrderCommand = new RelayCommand(async param =>
             {
-                // param poate fi Preparat sau Meniu cu cantitate
-                // pentru simplitate, presupunem că Items conţine deja Cantitate şi PretUnitate
-                if (CurrentOrder == null) return;
-                Items.Add((ComandaItem)param!);
+                if (CurrentOrder == null || param is not Meniu meniu)
+                    return;
+
+                // 1) ia detaliile meniului
+                var (list, totals) = await _spService.GetMeniuDetailsAsync(meniu.Id);
+
+                // 2) adaugă fiecare preparat ca item în comandă
+                foreach (var dto in list)
+                {
+                    Items.Add(new ComandaItem
+                    {
+                        PreparatId = dto.PreparatId,
+                        MeniuId = dto.MeniuId,
+                        Cantitate = 1,
+                        CantitatePortie = dto.GramajPortie,
+                        PretUnitate = dto.Subtotal
+                    });
+                }
+                RaiseCanExec();
             }, _ => CurrentOrder != null);
 
             PlaceOrderCommand = new RelayCommand(async _ =>
             {
-                if (CurrentOrder == null) return;
-                // construieşte un TVP
-                var table = new DataTable();
+                if (CurrentOrder == null || !Items.Any()) return;
+
+                // construiește TVP-ul pentru SP
+                var table = new System.Data.DataTable();
                 table.Columns.Add("PreparatId", typeof(int));
                 table.Columns.Add("MeniuId", typeof(int));
                 table.Columns.Add("Cantitate", typeof(int));
@@ -68,25 +79,29 @@ namespace Restaurant.ViewModels
                 foreach (var it in Items)
                     table.Rows.Add(it.PreparatId, it.MeniuId, it.Cantitate, it.CantitatePortie, it.PretUnitate);
 
+                // apelează SP-ul
                 var result = await _spService.CreateOrderWithItemsAsync(
                     CurrentOrder.UtilizatorId,
                     CurrentOrder.DiscountAplicat,
                     CurrentOrder.CostTransport,
                     table);
 
-                // populează CurrentOrder cu id şi cod
+                // actualizează comanda
                 CurrentOrder.Id = result.ComandaId;
                 CurrentOrder.CodUnic = result.CodUnic;
-            }, _ => CurrentOrder != null && Items.Any());
 
-            // preload preparate şi meniuri
-            Task.Run(async () =>
-            {
-                var sp = new PreparatService();
-                foreach (var p in await sp.GetAllAsync()) AllPreparate.Add(p);
-                var ms = new MeniuService();
-                foreach (var m in await ms.GetAllAsync()) AllMeniuri.Add(m);
-            });
+                // reset
+                CurrentOrder = null;
+                Items.Clear();
+                RaiseCanExec();
+            }, _ => CurrentOrder != null && Items.Any());
+        }
+
+        private void RaiseCanExec()
+        {
+            ((RelayCommand)StartOrderCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)AddMenuToOrderCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)PlaceOrderCommand).RaiseCanExecuteChanged();
         }
     }
 }

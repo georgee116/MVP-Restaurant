@@ -1,4 +1,5 @@
 ﻿// Restaurant.ViewModels/AlergenViewModel.cs
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -18,14 +19,25 @@ namespace Restaurant.ViewModels
         public Alergen? SelectedAlergen
         {
             get => _selected;
-            set { _selected = value; OnPropertyChanged(); }
+            set
+            {
+                _selected = value;
+                OnPropertyChanged();
+                ((RelayCommand)UpdateCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
+            }
         }
 
         private string _newNume = string.Empty;
         public string NewAlergenNume
         {
             get => _newNume;
-            set { _newNume = value; OnPropertyChanged(); ((RelayCommand)AddCommand).RaiseCanExecuteChanged(); }
+            set
+            {
+                _newNume = value;
+                OnPropertyChanged();
+                ((RelayCommand)AddCommand).RaiseCanExecuteChanged();
+            }
         }
 
         public ICommand LoadCommand { get; }
@@ -35,10 +47,14 @@ namespace Restaurant.ViewModels
 
         public AlergenViewModel()
         {
+            // 1) configure commands
             LoadCommand = new RelayCommand(async _ => await LoadAsync());
             AddCommand = new RelayCommand(async _ => await AddAsync(), _ => !string.IsNullOrWhiteSpace(NewAlergenNume));
             UpdateCommand = new RelayCommand(async _ => await UpdateAsync(), _ => SelectedAlergen != null);
             DeleteCommand = new RelayCommand(async _ => await DeleteAsync(), _ => SelectedAlergen != null);
+
+            // 2) auto-load imediat
+            _ = LoadAsync();
         }
 
         public async Task LoadAsync()

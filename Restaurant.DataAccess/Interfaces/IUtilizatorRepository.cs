@@ -1,8 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿// Restaurant.DataAccess/Interfaces/IUtilizatorRepository.cs
+using System.Threading.Tasks;
 using Restaurant.Domain.Entities;
 using Restaurant.Domain.Enums;
 
-public interface IUtilizatorRepository
+namespace Restaurant.DataAccess.Interfaces
 {
-    Task<Utilizator?> GetByEmailAndRoleAsync(string email, UserRole role);
+    public interface IUtilizatorRepository
+    {
+        Task<Utilizator?> GetByEmailAndRoleAsync(string email, UserRole role);
+        Task AddAsync(Utilizator user);
+    }
 }

@@ -1,16 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Restaurant.DataAccess/Repositories/UtilizatorRepository.cs
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.Data.Context;
 using Restaurant.DataAccess.Interfaces;
 using Restaurant.Domain.Entities;
 using Restaurant.Domain.Enums;
-using System.Threading.Tasks;
 
-public class UtilizatorRepository : IUtilizatorRepository
+namespace Restaurant.DataAccess.Repositories
 {
-    public async Task<Utilizator?> GetByEmailAndRoleAsync(string email, UserRole role)
+    public class UtilizatorRepository : IUtilizatorRepository
     {
-        using var ctx = new ApplicationDbContext();
-        return await ctx.Utilizatori
-                        .FirstOrDefaultAsync(u => u.Email == email && u.Role == role);
+        public async Task<Utilizator?> GetByEmailAndRoleAsync(string email, UserRole role)
+        {
+            using var ctx = new ApplicationDbContext();
+            return await ctx.Utilizatori
+                            .FirstOrDefaultAsync(u => u.Email == email && u.Role == role);
+        }
+
+        public async Task AddAsync(Utilizator user)
+        {
+            using var ctx = new ApplicationDbContext();
+            ctx.Utilizatori.Add(user);
+            await ctx.SaveChangesAsync();
+        }
     }
 }
