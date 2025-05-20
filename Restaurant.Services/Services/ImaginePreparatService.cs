@@ -1,4 +1,4 @@
-﻿// Restaurant.Services/Services/ImaginePreparatService.cs
+﻿// Actualizare în Restaurant.Services/Services/ImaginePreparatService.cs
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Restaurant.DataAccess.Interfaces;

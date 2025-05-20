@@ -12,57 +12,107 @@
     <Grid Margin="10">
         <TabControl>
 
-            <TabItem Header="Meniuri">
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+           <!-- Tab Meniuri îmbunătățit pentru MainWindow.xaml -->
+<TabItem Header="Meniuri">
+    <Grid Margin="0,0,0,10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Buton de reîncărcare date -->
+        <Button Grid.Row="0" 
+                Content="Reîncarcă date" 
+                Command="{Binding MeniuVM.LoadMeniuriCommand}" 
+                HorizontalAlignment="Left"
+                Margin="0,0,0,10"
+                Padding="10,5"/>
+        
+        <!-- Conținut principal grid -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-                    <!-- 1) Lista de meniuri -->
-                    <ListBox Grid.Column="0"
-             ItemsSource="{Binding MeniuVM.AllMeniuri}"
-             DisplayMemberPath="Denumire"
-             SelectedItem="{Binding MeniuVM.SelectedMeniu}"
-             Margin="0,0,10,0"/>
+            <!-- 1) Lista de meniuri în stânga -->
+            <DockPanel Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock DockPanel.Dock="Top" Text="Meniuri disponibile:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ListBox ItemsSource="{Binding MeniuVM.AllMeniuri}"
+                         DisplayMemberPath="Denumire"
+                         SelectedItem="{Binding MeniuVM.SelectedMeniu}"/>
+            </DockPanel>
 
-                    <!-- 2) Detaliile meniului + buton Adaugă -->
-                    <Grid Grid.Column="1">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+            <!-- 2) Detaliile meniului în dreapta -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                        <!-- butonul e activ doar pentru Client -->
-                        <Button Grid.Row="0"
-              Content="Adaugă în comandă"
-              Width="150"
-              Margin="0,0,0,10"
-              HorizontalAlignment="Left"
-              Command="{Binding ComandaVM.AddMenuToOrderCommand}"
-              CommandParameter="{Binding MeniuVM.SelectedMeniu}"
-              IsEnabled="{Binding IsClient}"/>
+                <!-- Informații despre meniul selectat -->
+                <StackPanel Grid.Row="0" 
+                            Visibility="{Binding MeniuVM.SelectedMeniu, Converter={StaticResource NullToBoolConverter}, ConverterParameter=Visibility}">
+                    <TextBlock Text="{Binding MeniuVM.SelectedMeniu.Denumire}" 
+                               FontSize="18" 
+                               FontWeight="Bold" 
+                               Margin="0,0,0,5"/>
+                    
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Categorie: " FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding MeniuVM.SelectedMeniu.Categorie.Nume}"/>
+                    </StackPanel>
+                    
+                    <!-- Informații totale despre meniu -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                        <TextBlock Text="Gramaj total: " FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding MeniuVM.Totals.TotalGramaj, StringFormat='{}{0}g'}"/>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Preț total: " FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding MeniuVM.Totals.TotalPret, StringFormat='{}{0:C}'}"/>
+                    </StackPanel>
+                </StackPanel>
 
-                        <!-- DataGrid cu preparatele meniului -->
-                        <DataGrid Grid.Row="1"
-                ItemsSource="{Binding MeniuVM.Items}"
-                AutoGenerateColumns="False"
-                CanUserAddRows="False">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Preparat"
-                              Binding="{Binding Preparat}"
-                              Width="*"/>
-                                <DataGridTextColumn Header="Gramaj"
-                              Binding="{Binding GramajPortie}"
-                              Width="100"/>
-                                <DataGridTextColumn Header="Preț"
-                              Binding="{Binding Subtotal, StringFormat=C}"
-                              Width="100"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Grid>
-                </Grid>
-            </TabItem>
+                <!-- butonul de adăugare în comandă (doar pentru Client) -->
+                <Button Grid.Row="1"
+                        Content="Adaugă în comandă"
+                        Width="150"
+                        Margin="0,0,0,10"
+                        HorizontalAlignment="Left"
+                        Command="{Binding ComandaVM.AddMenuToOrderCommand}"
+                        CommandParameter="{Binding MeniuVM.SelectedMeniu}"
+                        IsEnabled="{Binding IsClient}"
+                        Visibility="{Binding MeniuVM.SelectedMeniu, Converter={StaticResource NullToBoolConverter}, ConverterParameter=Visibility}"/>
+
+                <!-- DataGrid cu preparatele meniului -->
+                <GroupBox Grid.Row="2" Header="Preparate incluse în meniu">
+                    <DataGrid ItemsSource="{Binding MeniuVM.Items}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Preparat"
+                                          Binding="{Binding Preparat}"
+                                          Width="*"/>
+                            <DataGridTextColumn Header="Gramaj în meniu"
+                                          Binding="{Binding GramajPortie, StringFormat='{}{0}g'}"
+                                          Width="120"/>
+                            <DataGridTextColumn Header="Preț standard"
+                                          Binding="{Binding PretStandard, StringFormat='{}{0:C}'}"
+                                          Width="100"/>
+                            <DataGridTextColumn Header="Subtotal"
+                                          Binding="{Binding Subtotal, StringFormat='{}{0:C}'}"
+                                          Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+            </Grid>
+        </Grid>
+    </Grid>
+</TabItem>
 
 
             <!-- 2) COMENZI: doar Client -->
@@ -76,12 +126,69 @@
             </TabItem>
 
             <!-- 3) ALERGENI: doar Angajat -->
-            <TabItem Header="Alergeni"
-               Visibility="{Binding IsAngajat, Converter={StaticResource BoolToVis}}">
-                <Grid DataContext="{Binding AlergenVM}" Margin="0,0,0,10">
-                    <!-- aici e read-only pentru toți (DataGrid) și
-               butoanele Load/Add/Update/Delete ascunse
-               pentru non-Angajat, după cum am arătat anterior -->
+            <!-- Tab Alergeni modificat pentru MainWindow.xaml -->
+            <TabItem Header="Alergeni" Visibility="{Binding IsAngajat, Converter={StaticResource BoolToVis}}">
+                <Grid DataContext="{Binding AlergenVM}" Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="250"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Lista de alergeni în stânga -->
+                    <GroupBox Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Header="Alergeni" Margin="0,0,10,0">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                                <Button Content="Reîncarcă date" Command="{Binding LoadCommand}" Margin="5"/>
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding Alergeni}" 
+                          SelectedItem="{Binding SelectedAlergen}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          Margin="5">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Nume" Binding="{Binding Nume}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </GroupBox>
+
+                    <!-- Panoul de adăugare în dreapta -->
+                    <GroupBox Grid.Row="0" Grid.Column="1" Header="Adăugare alergen nou" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="Nume:"/>
+                            <TextBox Text="{Binding NewAlergenNume, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,10"/>
+                            <Button Content="Adaugă" 
+                        Command="{Binding AddCommand}" 
+                        HorizontalAlignment="Right"
+                        Padding="10,5"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Panoul de editare/ștergere în dreapta, jos -->
+                    <GroupBox Grid.Row="1" Grid.Column="1" Header="Editare alergen selectat">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="Nume:"/>
+                            <TextBox Text="{Binding SelectedAlergen.Nume, UpdateSourceTrigger=PropertyChanged}" 
+                         IsEnabled="{Binding SelectedAlergen, Converter={StaticResource NullToBoolConverter}}"
+                         Margin="0,5,0,10"/>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Actualizează" 
+                            Command="{Binding UpdateCommand}" 
+                            Margin="0,0,5,0"
+                            Padding="10,5"/>
+                                <Button Content="Șterge" 
+                            Command="{Binding DeleteCommand}" 
+                            Background="#FFDDDDDD"
+                            Padding="10,5"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
                 </Grid>
             </TabItem>
 
@@ -119,7 +226,7 @@
                         <StackPanel Margin="5">
                             <TextBlock Text="Nume:"/>
                             <TextBox Text="{Binding SelectedCategorie.Nume, UpdateSourceTrigger=PropertyChanged}" 
-                         IsEnabled="{Binding SelectedCategorie, Converter={StaticResource NullToBool}}"
+                         IsEnabled="{Binding SelectedCategorie, Converter={StaticResource NullToBoolConverter}}"
                          Margin="0,5,0,10"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <Button Content="Actualizează" Command="{Binding UpdateCommand}" Margin="0,0,5,0"/>
@@ -207,7 +314,7 @@
                             </TabItem>
 
                             <!-- Tab pentru editare preparat existent -->
-                            <TabItem Header="Editare" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBool}}">
+                            <TabItem Header="Editare" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBoolConverter}}">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel Margin="10">
                                         <TextBlock Text="Denumire:" FontWeight="Bold"/>
@@ -244,7 +351,7 @@
                             </TabItem>
 
                             <!-- Tab pentru alergeni -->
-                            <TabItem Header="Alergeni" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBool}}">
+                            <TabItem Header="Alergeni" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBoolConverter}}">
                                 <Grid Margin="10">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -284,7 +391,7 @@
                             </TabItem>
 
                             <!-- Tab pentru imagini -->
-                            <TabItem Header="Imagini" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBool}}">
+                            <TabItem Header="Imagini" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBoolConverter}}">
                                 <Grid Margin="10">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -317,7 +424,7 @@
                                     Padding="10,5"/>
                                         <Button Content="Elimină imagine" 
                                     Command="{Binding RemoveImageCommand}" 
-                                    IsEnabled="{Binding SelectedImage, Converter={StaticResource NullToBool}}"
+                                    IsEnabled="{Binding SelectedImage, Converter={StaticResource NullToBoolConverter}}"
                                     Background="#FFDDDDDD"
                                     Padding="10,5"/>
                                     </StackPanel>

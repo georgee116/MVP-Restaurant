@@ -4,8 +4,10 @@
              xmlns:conv="clr-namespace:Restaurant.UI.Modern.Converters"
              StartupUri="LoginWindow.xaml">
     <Application.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-        <conv:NullToBoolConverter    x:Key="NullToBool"/>
-        <conv:GreaterZeroConverter   x:Key="GreaterZeroConverter"/>
+        <!-- Converteri standard și custom -->
+        <conv:BoolToVisConverter x:Key="BoolToVis"/>
+        <conv:NullToBoolConverter x:Key="NullToBoolConverter"/>
+        <conv:GreaterZeroConverter x:Key="GreaterZeroConverter"/>
+        <conv:ProductConverter x:Key="ProductConverter"/>
     </Application.Resources>
 </Application>

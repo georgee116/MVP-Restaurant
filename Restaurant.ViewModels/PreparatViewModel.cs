@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Linq;
-using Microsoft.Win32;
+using Microsoft.Win32; // Adăugat pentru OpenFileDialog
 using System.IO;
 using Restaurant.Domain.Entities;
 using Restaurant.Services.Services;
@@ -19,6 +19,7 @@ namespace Restaurant.ViewModels
         private readonly CategorieService _categorieService = new();
         private readonly AlergenService _alergenService = new();
         private readonly PreparatAlergenService _preparatAlergenService = new();
+        private readonly ImaginePreparatService _imagineService = new(); // Service pentru imagini
 
         // Colecții observabile
         public ObservableCollection<Preparat> Preparate { get; } = new();
@@ -26,6 +27,19 @@ namespace Restaurant.ViewModels
         public ObservableCollection<Alergen> AlergeniDisponibili { get; } = new();
         public ObservableCollection<Alergen> AlergeniSelectati { get; } = new();
         public ObservableCollection<ImaginePreparat> ImaginiPreparat { get; } = new();
+
+        // Filtrare
+        private string _filterText = string.Empty;
+        public string FilterText
+        {
+            get => _filterText;
+            set
+            {
+                _filterText = value;
+                OnPropertyChanged();
+                FilterPreparate();
+            }
+        }
 
         // Proprietate pentru noul preparat
         private Preparat _newPreparat = new Preparat
@@ -163,6 +177,27 @@ namespace Restaurant.ViewModels
                    SelectedNewPreparatCategorie != null;
         }
 
+        private void FilterPreparate()
+        {
+            // Implementare logică de filtrare
+            if (string.IsNullOrWhiteSpace(FilterText))
+            {
+                // Reîncarcă toate preparatele
+                _ = LoadAsync();
+                return;
+            }
+
+            // Altfel, filtrează lista existentă
+            var filteredList = Preparate.Where(p =>
+                p.Denumire.Contains(FilterText, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            Preparate.Clear();
+            foreach (var p in filteredList)
+            {
+                Preparate.Add(p);
+            }
+        }
+
         public async Task LoadAsync()
         {
             // Încărcare preparate
@@ -246,9 +281,8 @@ namespace Restaurant.ViewModels
                 AlergeniSelectati.Add(a);
             }
 
-            // Încarcă imaginile preparatului - implementează o metodă în service care să încarce imaginile
+            // Încarcă imaginile preparatului
             ImaginiPreparat.Clear();
-            //Acest cod presupune că există o metodă în service pentru a încărca imaginile
             var imagini = await _preparatService.GetImaginiPreparatAsync(SelectedPreparat.Id);
             foreach (var img in imagini)
             {
@@ -306,9 +340,9 @@ namespace Restaurant.ViewModels
                     PathImagine = destPath
                 };
 
-                // Trebuie implementat un serviciu pentru imaginile preparatelor
-                // await _imaginePreparatService.AddAsync(imagine);
-                ImaginiPreparat.Add(imagine);
+                // Adaugă imaginea
+                var savedImage = await _imagineService.AddAsync(imagine);
+                ImaginiPreparat.Add(savedImage);
             }
         }
 
@@ -317,7 +351,7 @@ namespace Restaurant.ViewModels
             if (SelectedPreparat == null || SelectedImage == null) return;
 
             // Șterge imaginea din baza de date
-            // await _imaginePreparatService.DeleteAsync(SelectedImage.Id);
+            await _imagineService.DeleteAsync(SelectedImage.Id);
 
             // Șterge fișierul fizic dacă există
             if (File.Exists(SelectedImage.PathImagine))

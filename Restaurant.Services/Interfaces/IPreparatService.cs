@@ -12,5 +12,7 @@ namespace Restaurant.Services.Interfaces
         Task AddAsync(Preparat preparat);
         Task UpdateAsync(Preparat preparat);
         Task DeleteAsync(int id);
+        // Metoda nouă adăugată
+        Task<IEnumerable<ImaginePreparat>> GetImaginiPreparatAsync(int preparatId);
     }
 }

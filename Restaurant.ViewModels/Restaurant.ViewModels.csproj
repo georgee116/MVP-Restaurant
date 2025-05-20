@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Restaurant.Services\Restaurant.Services.csproj" />
     <ProjectReference Include="..\Restaurant.Domain\Restaurant.Domain.csproj" />
+	 <FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -15,8 +15,8 @@ namespace Restaurant.ViewModels
 
         public ObservableCollection<Alergen> Alergeni { get; } = new();
 
-        private Alergen? _selected;
-        public Alergen? SelectedAlergen
+        private Alergen _selected;
+        public Alergen SelectedAlergen
         {
             get => _selected;
             set
@@ -47,44 +47,80 @@ namespace Restaurant.ViewModels
 
         public AlergenViewModel()
         {
-            // 1) configure commands
+            // 1) configurăm comenzile
             LoadCommand = new RelayCommand(async _ => await LoadAsync());
             AddCommand = new RelayCommand(async _ => await AddAsync(), _ => !string.IsNullOrWhiteSpace(NewAlergenNume));
             UpdateCommand = new RelayCommand(async _ => await UpdateAsync(), _ => SelectedAlergen != null);
             DeleteCommand = new RelayCommand(async _ => await DeleteAsync(), _ => SelectedAlergen != null);
 
-            // 2) auto-load imediat
+            // 2) încărcăm inițial datele
             _ = LoadAsync();
         }
 
         public async Task LoadAsync()
         {
-            Alergeni.Clear();
-            var list = await _service.GetAllAlergeniAsync();
-            foreach (var a in list)
-                Alergeni.Add(a);
+            try
+            {
+                Alergeni.Clear();
+                var list = await _service.GetAllAlergeniAsync();
+                foreach (var a in list)
+                    Alergeni.Add(a);
+            }
+            catch (Exception ex)
+            {
+                // În producție, ar trebui să gestionați erorile corespunzător
+                System.Diagnostics.Debug.WriteLine($"Eroare la încărcarea alergenilor: {ex.Message}");
+            }
         }
 
         private async Task AddAsync()
         {
-            var a = await _service.CreateAlergenAsync(NewAlergenNume);
-            Alergeni.Add(a);
-            NewAlergenNume = string.Empty;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(NewAlergenNume)) return;
+
+                var a = await _service.CreateAlergenAsync(NewAlergenNume);
+                Alergeni.Add(a);
+                NewAlergenNume = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Eroare la adăugarea alergenului: {ex.Message}");
+            }
         }
 
         private async Task UpdateAsync()
         {
-            if (SelectedAlergen is null) return;
-            await _service.UpdateAlergenAsync(SelectedAlergen);
-            await LoadAsync();
+            try
+            {
+                if (SelectedAlergen == null) return;
+                if (string.IsNullOrWhiteSpace(SelectedAlergen.Nume)) return;
+
+                await _service.UpdateAlergenAsync(SelectedAlergen);
+
+                // Reîncărcăm lista pentru a reflecta modificările
+                await LoadAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Eroare la actualizarea alergenului: {ex.Message}");
+            }
         }
 
         private async Task DeleteAsync()
         {
-            if (SelectedAlergen is null) return;
-            await _service.DeleteAlergenAsync(SelectedAlergen.Id);
-            Alergeni.Remove(SelectedAlergen);
-            SelectedAlergen = null;
+            try
+            {
+                if (SelectedAlergen is null) return;
+
+                await _service.DeleteAlergenAsync(SelectedAlergen.Id);
+                Alergeni.Remove(SelectedAlergen);
+                SelectedAlergen = null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Eroare la ștergerea alergenului: {ex.Message}");
+            }
         }
     }
 }
