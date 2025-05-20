@@ -10,6 +10,8 @@ namespace Restaurant.ViewModels
         public AlergenViewModel AlergenVM { get; } = new AlergenViewModel();
         public MeniuViewModel MeniuVM { get; } = new MeniuViewModel();
         public ComandaViewModel ComandaVM { get; } = new ComandaViewModel();
+        public CategorieViewModel CategorieVM { get; } = new CategorieViewModel();
+        public PreparatViewModel PreparatVM { get; } = new PreparatViewModel();
 
         // The logged‐in user (null if Guest)
         private Utilizator? _currentUser;

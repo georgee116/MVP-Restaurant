@@ -85,6 +85,250 @@
                 </Grid>
             </TabItem>
 
+            <!-- În MainWindow.xaml, în cadrul TabControl, adăugați: -->
+            <TabItem Header="Categorii" Visibility="{Binding IsAngajat, Converter={StaticResource BoolToVis}}">
+                <Grid DataContext="{Binding CategorieVM}" Margin="0,0,0,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="250"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Lista de categorii în stânga -->
+                    <GroupBox Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Header="Categorii" Margin="0,0,10,0">
+                        <ListBox ItemsSource="{Binding Categorii}"
+                     SelectedItem="{Binding SelectedCategorie}"
+                     DisplayMemberPath="Nume"
+                     Margin="5"/>
+                    </GroupBox>
+
+                    <!-- Panoul de adăugare/editare în dreapta -->
+                    <GroupBox Grid.Row="0" Grid.Column="1" Header="Adăugare categorie nouă" Margin="0,0,0,10">
+                        <StackPanel Margin="5">
+                            <TextBlock Text="Nume:"/>
+                            <TextBox Text="{Binding NewCategorieNume, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,10"/>
+                            <Button Content="Adaugă" Command="{Binding AddCommand}" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Panoul de editare/ștergere în dreapta, jos -->
+                    <GroupBox Grid.Row="1" Grid.Column="1" Header="Editare categorie selectată">
+                        <StackPanel Margin="5">
+                            <TextBlock Text="Nume:"/>
+                            <TextBox Text="{Binding SelectedCategorie.Nume, UpdateSourceTrigger=PropertyChanged}" 
+                         IsEnabled="{Binding SelectedCategorie, Converter={StaticResource NullToBool}}"
+                         Margin="0,5,0,10"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Actualizează" Command="{Binding UpdateCommand}" Margin="0,0,5,0"/>
+                                <Button Content="Șterge" Command="{Binding DeleteCommand}" Background="#FFDDDDDD"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Preparate" Visibility="{Binding IsAngajat, Converter={StaticResource BoolToVis}}">
+                <Grid DataContext="{Binding PreparatVM}" Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Butoane de acțiune la nivel superior -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="Reîncarcă date" Command="{Binding LoadCommand}" Margin="0,0,10,0"/>
+                    </StackPanel>
+
+                    <!-- Conținutul principal cu lista și detalii -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Lista de preparate în stânga -->
+                        <GroupBox Grid.Column="0" Header="Preparate">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="Filtrare:" Margin="0,0,0,5"/>
+                                <TextBox DockPanel.Dock="Top" Margin="0,0,0,10" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                <DataGrid ItemsSource="{Binding Preparate}" 
+                              SelectedItem="{Binding SelectedPreparat}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Denumire" Binding="{Binding Denumire}" Width="*"/>
+                                        <DataGridTextColumn Header="Preț" Binding="{Binding Pret, StringFormat=C}" Width="80"/>
+                                        <DataGridTextColumn Header="Cantitate/Porție" Binding="{Binding CantitatePortie, StringFormat='{}{0}g'}" Width="120"/>
+                                        <DataGridTextColumn Header="Cantitate Totală" Binding="{Binding CantitateTotala, StringFormat='{}{0}g'}" Width="120"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DockPanel>
+                        </GroupBox>
+
+                        <!-- Separator -->
+                        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+
+                        <!-- Detalii preparat și adăugare în dreapta -->
+                        <TabControl Grid.Column="2">
+                            <!-- Tab pentru adăugare preparat nou -->
+                            <TabItem Header="Adăugare">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="10">
+                                        <TextBlock Text="Denumire:" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding NewPreparat.Denumire, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                        <TextBlock Text="Categoria:" FontWeight="Bold"/>
+                                        <ComboBox ItemsSource="{Binding Categorii}" 
+                                      DisplayMemberPath="Nume"
+                                      SelectedItem="{Binding SelectedNewPreparatCategorie}"
+                                      Margin="0,0,0,10"/>
+
+                                        <TextBlock Text="Preț:" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding NewPreparat.Pret, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                        <TextBlock Text="Cantitate per porție (g):" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding NewPreparat.CantitatePortie, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                        <TextBlock Text="Cantitate totală (g):" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding NewPreparat.CantitateTotala, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,20"/>
+
+                                        <Button Content="Adaugă preparat" 
+                                    Command="{Binding AddCommand}" 
+                                    HorizontalAlignment="Right"
+                                    Padding="10,5"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+
+                            <!-- Tab pentru editare preparat existent -->
+                            <TabItem Header="Editare" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBool}}">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="10">
+                                        <TextBlock Text="Denumire:" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding SelectedPreparat.Denumire, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                        <TextBlock Text="Categoria:" FontWeight="Bold"/>
+                                        <ComboBox ItemsSource="{Binding Categorii}" 
+                                      DisplayMemberPath="Nume"
+                                      SelectedValuePath="Id"
+                                      SelectedValue="{Binding SelectedPreparat.CategorieId}"
+                                      Margin="0,0,0,10"/>
+
+                                        <TextBlock Text="Preț:" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding SelectedPreparat.Pret, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                        <TextBlock Text="Cantitate per porție (g):" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding SelectedPreparat.CantitatePortie, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                                        <TextBlock Text="Cantitate totală (g):" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding SelectedPreparat.CantitateTotala, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,20"/>
+
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <Button Content="Actualizează" 
+                                        Command="{Binding UpdateCommand}" 
+                                        Margin="0,0,10,0"
+                                        Padding="10,5"/>
+                                            <Button Content="Șterge" 
+                                        Command="{Binding DeleteCommand}" 
+                                        Background="#FFDDDDDD"
+                                        Padding="10,5"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+
+                            <!-- Tab pentru alergeni -->
+                            <TabItem Header="Alergeni" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBool}}">
+                                <Grid Margin="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Alergeni disponibili -->
+                                    <DockPanel Grid.Column="0">
+                                        <TextBlock DockPanel.Dock="Top" Text="Alergeni disponibili:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                        <ListBox ItemsSource="{Binding AlergeniDisponibili}"
+                                     SelectedItem="{Binding SelectedAlergenToAdd}"
+                                     DisplayMemberPath="Nume"
+                                     Margin="0,0,0,10"/>
+                                    </DockPanel>
+
+                                    <!-- Butoane adăugare/eliminare -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                                        <Button Content="&gt;&gt;" 
+                                    Command="{Binding AddAlergenCommand}" 
+                                    Margin="0,0,0,10"
+                                    Padding="5,2"/>
+                                        <Button Content="&lt;&lt;" 
+                                    Command="{Binding RemoveAlergenCommand}" 
+                                    Padding="5,2"/>
+                                    </StackPanel>
+
+                                    <!-- Alergeni asociați preparatului -->
+                                    <DockPanel Grid.Column="2">
+                                        <TextBlock DockPanel.Dock="Top" Text="Alergeni asociați preparatului:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                        <ListBox ItemsSource="{Binding AlergeniSelectati}"
+                                     SelectedItem="{Binding SelectedAlergenToRemove}"
+                                     DisplayMemberPath="Nume"
+                                     Margin="0,0,0,10"/>
+                                    </DockPanel>
+                                </Grid>
+                            </TabItem>
+
+                            <!-- Tab pentru imagini -->
+                            <TabItem Header="Imagini" IsEnabled="{Binding SelectedPreparat, Converter={StaticResource NullToBool}}">
+                                <Grid Margin="10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Text="Imagini asociate preparatului:" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                                    <ListBox Grid.Row="1" 
+                                 ItemsSource="{Binding ImaginiPreparat}"
+                                 SelectedItem="{Binding SelectedImage}"
+                                 Margin="0,0,0,10">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Image Source="{Binding PathImagine}" Height="100" Margin="5"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                    </ListBox>
+
+                                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Adaugă imagine" 
+                                    Command="{Binding AddImageCommand}" 
+                                    Margin="0,0,10,0"
+                                    Padding="10,5"/>
+                                        <Button Content="Elimină imagine" 
+                                    Command="{Binding RemoveImageCommand}" 
+                                    IsEnabled="{Binding SelectedImage, Converter={StaticResource NullToBool}}"
+                                    Background="#FFDDDDDD"
+                                    Padding="10,5"/>
+                                    </StackPanel>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+
         </TabControl>
     </Grid>
 </Window>
