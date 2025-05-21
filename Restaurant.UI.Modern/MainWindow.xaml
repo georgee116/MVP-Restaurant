@@ -12,7 +12,151 @@
     <Grid Margin="10">
         <TabControl>
 
-           <!-- Tab Meniuri îmbunătățit pentru MainWindow.xaml -->
+            <!-- Tab pentru administrarea meniurilor -->
+            <TabItem Header="Admin Meniuri" Visibility="{Binding IsAngajat, Converter={StaticResource BoolToVis}}">
+                <Grid DataContext="{Binding MeniuAdminVM}" Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Butoane de acțiune la nivel superior -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="Reîncarcă date" Command="{Binding LoadCommand}" Margin="0,0,10,0"/>
+                    </StackPanel>
+
+                    <!-- Conținut principal -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Panoul din stânga - lista meniurilor și adăugare meniu nou -->
+                        <DockPanel Grid.Column="0" Margin="0,0,10,0">
+                            <!-- Secțiunea de adăugare meniu nou -->
+                            <GroupBox DockPanel.Dock="Top" Header="Adăugare meniu nou" Margin="0,0,0,10">
+                                <StackPanel Margin="5">
+                                    <TextBlock Text="Denumire:" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding NewMeniuName, UpdateSourceTrigger=PropertyChanged}" 
+                                 Margin="0,0,0,5"/>
+
+                                    <TextBlock Text="Categorie:" FontWeight="Bold"/>
+                                    <ComboBox ItemsSource="{Binding Categorii}"
+                                  DisplayMemberPath="Nume"
+                                  SelectedItem="{Binding SelectedNewMeniuCategorie}"
+                                  Margin="0,0,0,10"/>
+
+                                    <Button Content="Adaugă meniu" 
+                                Command="{Binding AddCommand}" 
+                                HorizontalAlignment="Right"/>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!-- Lista de meniuri -->
+                            <GroupBox Header="Meniuri existente">
+                                <DockPanel>
+                                    <ListBox ItemsSource="{Binding AllMeniuri}"
+                                 SelectedItem="{Binding SelectedMeniu}"
+                                 DisplayMemberPath="Denumire"
+                                 Margin="0,5"/>
+                                </DockPanel>
+                            </GroupBox>
+                        </DockPanel>
+
+                        <!-- Panoul din dreapta - detalii meniu și gestionare preparate -->
+                        <TabControl Grid.Column="1" 
+                        IsEnabled="{Binding SelectedMeniu, Converter={StaticResource NullToBoolConverter}}">
+
+                            <!-- Tab detalii meniu -->
+                            <TabItem Header="Detalii meniu">
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="Denumire:" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding SelectedMeniu.Denumire, UpdateSourceTrigger=PropertyChanged}" 
+                                 Margin="0,0,0,10"/>
+
+                                    <TextBlock Text="Categorie:" FontWeight="Bold"/>
+                                    <ComboBox ItemsSource="{Binding Categorii}"
+                                  DisplayMemberPath="Nume"
+                                  SelectedValuePath="Id"
+                                  SelectedValue="{Binding SelectedMeniu.CategorieId}"
+                                  Margin="0,0,0,20"/>
+
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Actualizează" 
+                                    Command="{Binding UpdateCommand}" 
+                                    Margin="0,0,5,0"/>
+                                        <Button Content="Șterge" 
+                                    Command="{Binding DeleteCommand}" 
+                                    Background="#FFDDDDDD"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </TabItem>
+
+                            <!-- Tab gestionare preparate în meniu -->
+                            <TabItem Header="Preparate">
+                                <Grid Margin="10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Preparate disponibile -->
+                                    <GroupBox Grid.Row="0" Header="Preparate disponibile">
+                                        <DockPanel>
+                                            <StackPanel DockPanel.Dock="Bottom" Margin="0,5">
+                                                <TextBlock Text="Cantitate porție (g):" Margin="0,0,0,2"/>
+                                                <TextBox Text="{Binding CantitatePortieMeniu, UpdateSourceTrigger=PropertyChanged}" 
+                                             Margin="0,0,0,5"/>
+                                                <Button Content="Adaugă în meniu" 
+                                            Command="{Binding AddPreparatToMeniuCommand}" 
+                                            HorizontalAlignment="Right"/>
+                                            </StackPanel>
+
+                                            <ListBox ItemsSource="{Binding PreparateDisponibile}"
+                                         SelectedItem="{Binding SelectedPreparatToAdd}"
+                                         DisplayMemberPath="Denumire"
+                                         Margin="0,5"/>
+                                        </DockPanel>
+                                    </GroupBox>
+
+                                    <!-- Separator -->
+                                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                      Margin="0,5" Background="#FFDDDDDD"/>
+
+                                    <!-- Preparate în meniu -->
+                                    <GroupBox Grid.Row="2" Header="Preparate în meniu">
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Bottom" 
+                                        Content="Elimină din meniu" 
+                                        Command="{Binding RemovePreparatFromMeniuCommand}" 
+                                        HorizontalAlignment="Right"
+                                        Margin="0,5,0,0"/>
+
+                                            <ListBox ItemsSource="{Binding PreparateInMeniu}"
+                                         SelectedItem="{Binding SelectedPreparatToRemove}"
+                                         Margin="0,5">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Denumire}" />
+                                                            <TextBlock Text=" - " />
+                                                            <TextBlock Text="{Binding CantitatePortie, StringFormat='{}{0}g'}" />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </DockPanel>
+                                    </GroupBox>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab Meniuri îmbunătățit pentru MainWindow.xaml -->
 <TabItem Header="Meniuri">
     <Grid Margin="0,0,0,10">
         <Grid.RowDefinitions>
