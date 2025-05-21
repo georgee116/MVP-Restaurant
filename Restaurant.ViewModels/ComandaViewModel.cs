@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Restaurant.Domain.DTOs;
+using Restaurant.Domain.Entities;
+using Restaurant.Domain.Enums;
+using Restaurant.Services.Interfaces;
+using Restaurant.Services.Services;
+using Restaurant.ViewModels.Common;
+using System;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Data;
-using Restaurant.Domain.DTOs;
-using Restaurant.Domain.Entities;
-using Restaurant.Domain.Enums;
-using Restaurant.Services.Services;
-using Restaurant.ViewModels.Common;
 
 namespace Restaurant.ViewModels
 {
@@ -17,6 +18,7 @@ namespace Restaurant.ViewModels
         private readonly StoredProceduresService _spService = new();
         private readonly PreparatService _preparatService = new();
         private readonly MeniuService _meniuService = new();
+        private readonly PreparatMeniuService _preparatMeniuService = new();
 
         // Colecția de itemi în comanda curentă
         public ObservableCollection<ComandaItem> Items { get; } = new();
@@ -174,41 +176,45 @@ namespace Restaurant.ViewModels
         }
 
         // Adăugare preparat în comandă
-        private void AddPreparat()
+        private async Task AddPreparat()
         {
             if (SelectedPreparat == null || !IsComandaActiva || Cantitate <= 0)
                 return;
 
-            // Verificăm disponibilitatea
-            if (SelectedPreparat.CantitateTotala < SelectedPreparat.CantitatePortie * Cantitate)
+            // Calculează cantitatea necesară
+            float cantitateNecesara = SelectedPreparat.CantitatePortie * Cantitate;
+
+            // Verifică disponibilitatea
+            bool stocDisponibil = await _preparatService.VerificaStocDisponibilAsync(SelectedPreparat.Id, cantitateNecesara);
+            if (!stocDisponibil)
             {
-                // Notificare insuficient
-                System.Windows.MessageBox.Show($"Cantitate insuficientă disponibilă pentru {SelectedPreparat.Denumire}!",
-                    "Stoc insuficient", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-                return;
+                float portiiDisponibile = (float)Math.Floor(SelectedPreparat.CantitateTotala / SelectedPreparat.CantitatePortie);
+                if (portiiDisponibile <= 0)
+                {
+                    System.Windows.MessageBox.Show($"Ne pare rău, produsul '{SelectedPreparat.Denumire}' nu este disponibil în stoc!",
+                        "Stoc epuizat", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    return;
+                }
+                else
+                {
+                    var result = System.Windows.MessageBox.Show(
+                        $"Cantitatea solicitată ({Cantitate} porții) nu este disponibilă în stoc.\n" +
+                        $"Sunt disponibile doar {portiiDisponibile} porții.\n" +
+                        $"Doriți să adăugați cantitatea maximă disponibilă?",
+                        "Stoc insuficient",
+                        System.Windows.MessageBoxButton.YesNo,
+                        System.Windows.MessageBoxImage.Question);
+
+                    if (result == System.Windows.MessageBoxResult.Yes)
+                    {
+                        Cantitate = (int)portiiDisponibile;
+                    }
+                    else
+                    {
+                        return; // Utilizatorul anulează
+                    }
+                }
             }
-
-            // Verificăm dacă există deja în comandă și actualizăm
-            var existingItem = Items.FirstOrDefault(i => i.PreparatId == SelectedPreparat.Id && i.MeniuId == null);
-            if (existingItem != null)
-            {
-                existingItem.Cantitate += Cantitate;
-                OnPropertyChanged(nameof(CostTotal));
-                return;
-            }
-
-            // Altfel adăugăm nou
-            Items.Add(new ComandaItem
-            {
-                PreparatId = SelectedPreparat.Id,
-                Preparat = SelectedPreparat,
-                MeniuId = null,
-                Cantitate = Cantitate,
-                CantitatePortie = SelectedPreparat.CantitatePortie,
-                PretUnitate = SelectedPreparat.Pret
-            });
-
-            OnPropertyChanged(nameof(CostTotal));
         }
 
         // Adăugare meniu în comandă
@@ -322,13 +328,22 @@ namespace Restaurant.ViewModels
 
                 foreach (var item in Items)
                 {
-                    itemsTable.Rows.Add(
-                        item.PreparatId.HasValue ? item.PreparatId.Value : DBNull.Value,
-                        item.MeniuId.HasValue ? item.MeniuId.Value : DBNull.Value,
-                        item.Cantitate,
-                        item.CantitatePortie,
-                        item.PretUnitate
-                    );
+                    if (item.PreparatId.HasValue)
+                    {
+                        // Este un preparat individual
+                        float cantitateConsumata = item.CantitatePortie * item.Cantitate;
+                        await _preparatService.ScadeStocAsync(item.PreparatId.Value, cantitateConsumata);
+                    }
+                    else if (item.MeniuId.HasValue)
+                    {
+                        // Este un meniu - scade stocul pentru fiecare preparat din meniu
+                        var preparateMeniu = await _preparatMeniuService.GetPreparatMeniuriAsync(item.MeniuId.Value);
+                        foreach (var pm in preparateMeniu)
+                        {
+                            float cantitateConsumata = pm.CantitatePortieMeniu * item.Cantitate;
+                            await _preparatService.ScadeStocAsync(pm.PreparatId, cantitateConsumata);
+                        }
+                    }
                 }
 
                 // Apelăm procedura stocată

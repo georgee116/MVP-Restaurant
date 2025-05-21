@@ -13,7 +13,9 @@ namespace Restaurant.ViewModels
         public ComandaViewModel ComandaVM { get; } = new ComandaViewModel();
         public CategorieViewModel CategorieVM { get; } = new CategorieViewModel();
         public PreparatViewModel PreparatVM { get; } = new PreparatViewModel();
-        public MeniuAdminViewModel MeniuAdminVM { get; } = new MeniuAdminViewModel(); // Nou
+        public MeniuAdminViewModel MeniuAdminVM { get; } = new MeniuAdminViewModel();
+        public StocRedusViewModel StocRedusVM { get; } = new StocRedusViewModel();
+
 
         // The logged‐in user (null if Guest)
         private Utilizator? _currentUser;

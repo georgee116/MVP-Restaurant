@@ -136,6 +136,7 @@ namespace Restaurant.ViewModels
         public ICommand RemoveAlergenCommand { get; }
         public ICommand AddImageCommand { get; }
         public ICommand RemoveImageCommand { get; }
+        public ICommand UpdateStocCommand { get; }
 
         // Selector pentru imagine selectată pentru eliminare
         private ImaginePreparat _selectedImage;
@@ -164,6 +165,8 @@ namespace Restaurant.ViewModels
             AddImageCommand = new RelayCommand(async _ => await AddImageAsync(), _ => SelectedPreparat != null);
             RemoveImageCommand = new RelayCommand(async _ => await RemoveImageAsync(), _ => SelectedImage != null && SelectedPreparat != null);
 
+            UpdateStocCommand = new RelayCommand(async param => await UpdateStocAsync((float)param), _ => SelectedPreparat != null);
+
             // Inițializare
             _ = LoadAsync();
         }
@@ -171,10 +174,7 @@ namespace Restaurant.ViewModels
         private bool CanAdd(object _)
         {
             return !string.IsNullOrWhiteSpace(NewPreparat.Denumire) &&
-                   NewPreparat.Pret > 0 &&
-                   NewPreparat.CantitatePortie > 0 &&
-                   NewPreparat.CantitateTotala >= 0 &&
-                   SelectedNewPreparatCategorie != null;
+            SelectedNewPreparatCategorie != null;
         }
 
         private void FilterPreparate()
@@ -361,5 +361,23 @@ namespace Restaurant.ViewModels
 
             ImaginiPreparat.Remove(SelectedImage);
         }
+
+        private async Task UpdateStocAsync(float cantitateNoua)
+{
+    if (SelectedPreparat == null) return;
+    
+    try
+    {
+        await _preparatService.UpdateStocAsync(SelectedPreparat.Id, cantitateNoua);
+        SelectedPreparat.CantitateTotala = cantitateNoua;
+        System.Windows.MessageBox.Show($"Stocul pentru {SelectedPreparat.Denumire} a fost actualizat la {cantitateNoua}g.",
+            "Stoc actualizat", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+    }
+    catch (Exception ex)
+    {
+        System.Windows.MessageBox.Show($"Eroare la actualizarea stocului: {ex.Message}",
+            "Eroare", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+    }
+}
     }
 }

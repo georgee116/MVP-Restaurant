@@ -34,5 +34,25 @@ namespace Restaurant.Services.Services
 
         public Task DeleteAsync(int id)
             => _repo.RemoveAsync(id);
+
+        public async Task UpdateStocAsync(int preparatId, float cantitateNoua)
+        {
+            await _repo.UpdateStocAsync(preparatId, cantitateNoua);
+        }
+
+        public async Task<bool> VerificaStocDisponibilAsync(int preparatId, float cantitateNecesara)
+        {
+            return await _repo.VerificaStocDisponibilAsync(preparatId, cantitateNecesara);
+        }
+
+        public async Task ScadeStocAsync(int preparatId, float cantitate)
+        {
+            var preparat = await _repo.GetByIdAsync(preparatId);
+            if (preparat != null)
+            {
+                float cantitateNoua = Math.Max(0, preparat.CantitateTotala - cantitate);
+                await _repo.UpdateStocAsync(preparatId, cantitateNoua);
+            }
+        }
     }
 }

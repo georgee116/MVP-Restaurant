@@ -113,5 +113,26 @@ namespace Restaurant.DataAccess.Repositories
 
         // 10. (opțional) alias DeleteAsync
         public Task DeleteAsync(int id) => RemoveAsync(id);
+
+        public async Task UpdateStocAsync(int preparatId, float cantitateNoua)
+        {
+            using var ctx = new ApplicationDbContext();
+            var preparat = await ctx.Preparate.FindAsync(preparatId);
+            if (preparat != null)
+            {
+                preparat.CantitateTotala = cantitateNoua;
+                await ctx.SaveChangesAsync();
+            }
+        }
+
+        public async Task<bool> VerificaStocDisponibilAsync(int preparatId, float cantitateNecesara)
+        {
+            using var ctx = new ApplicationDbContext();
+            var preparat = await ctx.Preparate.FindAsync(preparatId);
+            if (preparat == null)
+                return false;
+
+            return preparat.CantitateTotala >= cantitateNecesara;
+        }
     }
 }

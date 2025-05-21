@@ -433,6 +433,9 @@
                                     <StackPanel Margin="10">
                                         <TextBlock Text="Denumire:" FontWeight="Bold"/>
                                         <TextBox Text="{Binding NewPreparat.Denumire, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                                        <TextBlock Text="Stoc disponibil :" FontWeight="Bold"/>
+                                        <TextBox Text="{Binding SelectedPreparat.CantitateTotala, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
 
                                         <TextBlock Text="Categoria:" FontWeight="Bold"/>
                                         <ComboBox ItemsSource="{Binding Categorii}" 

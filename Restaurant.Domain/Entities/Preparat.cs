@@ -7,7 +7,7 @@ namespace Restaurant.Domain.Entities
         public int Id { get; set; }
         public string Denumire { get; set; }
         public decimal Pret { get; set; }
-        public float CantitatePortie { get; set; }
+        public int CantitatePortie { get; set; }
         public float CantitateTotala { get; set; }
 
         public int CategorieId { get; set; }
