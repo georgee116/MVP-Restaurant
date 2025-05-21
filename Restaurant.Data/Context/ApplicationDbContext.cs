@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Restaurant.Domain.DTOs;
 using Restaurant.Domain.Entities;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -21,6 +22,9 @@ namespace Restaurant.Data.Context
         public DbSet<Utilizator> Utilizatori { get; set; }
         public DbSet<Comanda> Comenzi { get; set; }
         public DbSet<ComandaItem> ComandaItems { get; set; }
+        public DbSet<MeniuDetailDto> MeniuDetails { get; set; }
+        public DbSet<MeniuTotalsDto> MeniuTotals { get; set; }
+        public DbSet<NewOrderResultDto> NewOrderResults { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -39,6 +43,7 @@ namespace Restaurant.Data.Context
             // ------ Preparat <-> Alergen (M:N) ------
             modelBuilder.Entity<PreparatAlergen>()
                 .HasKey(pa => new { pa.PreparatId, pa.AlergenId });
+            modelBuilder.Entity<NewOrderResultDto>().HasNoKey();
 
             modelBuilder.Entity<PreparatAlergen>()
                 .HasOne(pa => pa.Preparat)
@@ -96,6 +101,9 @@ namespace Restaurant.Data.Context
                 .WithMany()
                 .HasForeignKey(ci => ci.MeniuId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MeniuDetailDto>().HasNoKey();
+            modelBuilder.Entity<MeniuTotalsDto>().HasNoKey();
         }
     }
 }

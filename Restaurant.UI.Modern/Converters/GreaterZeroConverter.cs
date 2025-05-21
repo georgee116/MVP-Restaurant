@@ -17,7 +17,7 @@ namespace Restaurant.UI.Modern.Converters
                 isGreaterThanZero = i > 0;
             else if (value is decimal d)
                 isGreaterThanZero = d > 0;
-            else if (value is float f)
+            else if (value is float f) 
                 isGreaterThanZero = f > 0;
             else if (value is double dbl)
                 isGreaterThanZero = dbl > 0;

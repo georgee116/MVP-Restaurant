@@ -106,9 +106,7 @@
                                     <GroupBox Grid.Row="0" Header="Preparate disponibile">
                                         <DockPanel>
                                             <StackPanel DockPanel.Dock="Bottom" Margin="0,5">
-                                                <TextBox x:Name="txtCantitate" 
-                                                    Text="{Binding CantitatePortieMeniu, UpdateSourceTrigger=PropertyChanged, StringFormat='{}{0:F0}'}" 
-                                                        Margin="0,0,0,5"/>
+                                                
                                                 <Button Content="Adaugă în meniu" 
                                             Command="{Binding AddPreparatToMeniuCommand}" 
                                             HorizontalAlignment="Right"/>
@@ -157,118 +155,215 @@
             </TabItem>
 
             <!-- Tab Meniuri îmbunătățit pentru MainWindow.xaml -->
-<TabItem Header="Meniuri">
-    <Grid Margin="0,0,0,10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        
-        <!-- Buton de reîncărcare date -->
-        <Button Grid.Row="0" 
+            <!-- Tab Meniuri îmbunătățit pentru MainWindow.xaml -->
+            <TabItem Header="Meniuri">
+                <Grid Margin="0,0,0,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Buton de reîncărcare date -->
+                    <Button Grid.Row="0" 
                 Content="Reîncarcă date" 
                 Command="{Binding MeniuVM.LoadMeniuriCommand}" 
                 HorizontalAlignment="Left"
                 Margin="0,0,0,10"
                 Padding="10,5"/>
-        
-        <!-- Conținut principal grid -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
 
-            <!-- 1) Lista de meniuri în stânga -->
-            <DockPanel Grid.Column="0" Margin="0,0,10,0">
-                <TextBlock DockPanel.Dock="Top" Text="Meniuri disponibile:" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ListBox ItemsSource="{Binding MeniuVM.AllMeniuri}"
+                    <!-- Conținut principal grid -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 1) Lista de meniuri în stânga -->
+                        <DockPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock DockPanel.Dock="Top" Text="Meniuri disponibile:" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <ListBox ItemsSource="{Binding MeniuVM.AllMeniuri}"
                          DisplayMemberPath="Denumire"
                          SelectedItem="{Binding MeniuVM.SelectedMeniu}"/>
-            </DockPanel>
+                        </DockPanel>
 
-            <!-- 2) Detaliile meniului în dreapta -->
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                        <!-- 2) Detaliile meniului în dreapta -->
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                <!-- Informații despre meniul selectat -->
-                <StackPanel Grid.Row="0" 
+                            <!-- Informații despre meniul selectat -->
+                            <StackPanel Grid.Row="0" 
                             Visibility="{Binding MeniuVM.SelectedMeniu, Converter={StaticResource NullToBoolConverter}, ConverterParameter=Visibility}">
-                    <TextBlock Text="{Binding MeniuVM.SelectedMeniu.Denumire}" 
+                                <TextBlock Text="{Binding MeniuVM.SelectedMeniu.Denumire}" 
                                FontSize="18" 
                                FontWeight="Bold" 
                                Margin="0,0,0,5"/>
-                    
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <TextBlock Text="Categorie: " FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding MeniuVM.SelectedMeniu.Categorie.Nume}"/>
-                    </StackPanel>
-                    
-                    <!-- Informații totale despre meniu -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                        <TextBlock Text="Gramaj total: " FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding MeniuVM.Totals.TotalGramaj, StringFormat='{}{0}g'}"/>
-                    </StackPanel>
-                    
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <TextBlock Text="Preț total: " FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding MeniuVM.Totals.TotalPret, StringFormat='{}{0:C}'}"/>
-                    </StackPanel>
-                </StackPanel>
 
-                <!-- butonul de adăugare în comandă (doar pentru Client) -->
-                <Button Grid.Row="1"
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Text="Categorie: " FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding MeniuVM.SelectedMeniu.Categorie.Nume}"/>
+                                </StackPanel>
+
+                                <!-- Informații totale despre meniu -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                    <TextBlock Text="Gramaj total: " FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding MeniuVM.Totals.TotalGramaj, StringFormat='{}{0}g'}"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Text="Preț total: " FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding MeniuVM.Totals.TotalPret, StringFormat='{}{0:C}'}"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- butonul de adăugare în comandă (doar pentru Client sau Angajat) -->
+                            <Button Grid.Row="1"
                         Content="Adaugă în comandă"
                         Width="150"
                         Margin="0,0,0,10"
                         HorizontalAlignment="Left"
                         Command="{Binding ComandaVM.AddMenuToOrderCommand}"
                         CommandParameter="{Binding MeniuVM.SelectedMeniu}"
-                        IsEnabled="{Binding IsClient}"
+                        IsEnabled="{Binding IsClientOrAngajat}"
                         Visibility="{Binding MeniuVM.SelectedMeniu, Converter={StaticResource NullToBoolConverter}, ConverterParameter=Visibility}"/>
 
-                <!-- DataGrid cu preparatele meniului -->
-                <GroupBox Grid.Row="2" Header="Preparate incluse în meniu">
-                    <DataGrid ItemsSource="{Binding MeniuVM.Items}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Preparat"
-                                          Binding="{Binding Preparat}"
-                                          Width="*"/>
-                            <DataGridTextColumn Header="Gramaj în meniu"
-                                          Binding="{Binding GramajPortie, StringFormat='{}{0}g'}"
-                                          Width="120"/>
-                            <DataGridTextColumn Header="Preț standard"
-                                          Binding="{Binding PretStandard, StringFormat='{}{0:C}'}"
-                                          Width="100"/>
-                            <DataGridTextColumn Header="Subtotal"
-                                          Binding="{Binding Subtotal, StringFormat='{}{0:C}'}"
-                                          Width="100"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </GroupBox>
-            </Grid>
-        </Grid>
-    </Grid>
-</TabItem>
-
-
-            <!-- 2) COMENZI: doar Client -->
-            <TabItem Header="Comenzi"
-               Visibility="{Binding IsClient, Converter={StaticResource BoolToVis}}">
-                <Grid DataContext="{Binding ComandaVM}" Margin="0,0,0,10">
-                    <!-- aici păstrezi ComandaViewModel cum ai acum:
-               StartOrderCommand, AddItemCommand, PlaceOrderCommand,
-               Items, AllPreparate, AllMeniuri etc. -->
+                            <!-- DataGrid cu preparatele meniului -->
+                            <GroupBox Grid.Row="2" Header="Preparate incluse în meniu">
+                                <DataGrid ItemsSource="{Binding MeniuVM.Items}"
+          AutoGenerateColumns="False"
+          IsReadOnly="True"
+          CanUserAddRows="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Preparat"
+                      Binding="{Binding Preparat}"
+                      Width="*"/>
+                                        <DataGridTextColumn Header="Gramaj în meniu"
+                      Binding="{Binding GramajPortie, StringFormat='{}{0}g'}"
+                      Width="120"/>
+                                        <DataGridTextColumn Header="Preț standard"
+                      Binding="{Binding PretStandard, StringFormat='{}{0:C}'}"
+                      Width="100"/>
+                                        <DataGridTextColumn Header="Subtotal"
+                      Binding="{Binding Subtotal, StringFormat='{}{0:C}'}"
+                      Width="100"/>
+                                        <DataGridTextColumn Header="Disponibil"
+                      Binding="{Binding DisponibilText}"
+                      Width="80"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </GroupBox>
+                        </Grid>
+                    </Grid>
                 </Grid>
             </TabItem>
+            <!-- În MainWindow.xaml, în TabControl -->
+            <TabItem Header="Comanda" Visibility="{Binding IsClientOrAngajat, Converter={StaticResource BoolToVis}}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
+                    <!-- Header pentru comandă -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="Comandă curentă" FontSize="18" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding ComandaVM.IsComandaActiva, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Data comenzii: " FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding ComandaVM.CurrentOrder.DataComenzii, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Lista de itemi din comandă -->
+                    <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding ComandaVM.Items}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  Margin="0,0,0,10"
+                  Visibility="{Binding ComandaVM.IsComandaActiva, Converter={StaticResource BoolToVis}}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Denumire" 
+                              Binding="{Binding Meniu.Denumire}" 
+                              Width="*"/>
+                            <DataGridTextColumn Header="Cantitate" 
+                              Binding="{Binding Cantitate}" 
+                              Width="80"/>
+                            <DataGridTextColumn Header="Preț unitar" 
+                              Binding="{Binding PretUnitate, StringFormat='{}{0:C}'}" 
+                              Width="100"/>
+                            <DataGridTextColumn Header="Total" 
+                   Binding="{Binding Total, StringFormat='{}{0:C}'}" 
+                   Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Butoane pentru acțiuni -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Începe comandă nouă" 
+                    Command="{Binding ComandaVM.StartOrderCommand}" 
+                    Margin="0,0,10,0"
+                    Padding="10,5"
+                    Visibility="{Binding ComandaVM.IsComandaActiva, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"/>
+
+                        <Button Content="Anulează comandă" 
+                    Command="{Binding ComandaVM.CancelOrderCommand}" 
+                    Margin="0,0,10,0"
+                    Padding="10,5"
+                    Visibility="{Binding ComandaVM.IsComandaActiva, Converter={StaticResource BoolToVis}}"/>
+
+                        <Button Content="Plasează comandă" 
+                    Command="{Binding ComandaVM.PlaceOrderCommand}" 
+                    Padding="10,5"
+                    IsEnabled="True"
+                    Visibility="{Binding ComandaVM.IsComandaActiva, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <!-- În MainWindow.xaml, în TabControl -->
+            <TabItem Header="Istoric Comenzi">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header pentru listă comenzi -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="Comenzile Mele" FontWeight="Bold" FontSize="16" Margin="0,0,0,5"/>
+                        <Button Content="Reîncarcă comenzi" 
+                    Command="{Binding IstoricComenziVM.LoadComenziCommand}" 
+                    HorizontalAlignment="Left"
+                    Padding="5,2"/>
+                    </StackPanel>
+
+                    <!-- DataGrid cu comenzi -->
+                    <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding IstoricComenziVM.Comenzi}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  Margin="0,0,0,10">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Cod Comandă" 
+                                   Binding="{Binding CodUnic}" 
+                                   Width="120"/>
+                            <DataGridTextColumn Header="Data" 
+                                   Binding="{Binding DataComenzii, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" 
+                                   Width="150"/>
+                            <DataGridTextColumn Header="Status" 
+                                   Binding="{Binding Status}" 
+                                   Width="100"/>
+                            <DataGridTextColumn Header="Total" 
+                                   Binding="{Binding ValoareTotala, StringFormat='{}{0:C}'}" 
+                                   Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
             <!-- 3) ALERGENI: doar Angajat -->
             <!-- Tab Alergeni modificat pentru MainWindow.xaml -->
             <TabItem Header="Alergeni" Visibility="{Binding IsAngajat, Converter={StaticResource BoolToVis}}">
@@ -433,8 +528,7 @@
                                     <StackPanel Margin="10">
                                         <TextBlock Text="Denumire:" FontWeight="Bold"/>
                                         <TextBox Text="{Binding NewPreparat.Denumire, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
-                                        <TextBlock Text="Stoc disponibil :" FontWeight="Bold"/>
-                                        <TextBox Text="{Binding SelectedPreparat.CantitateTotala, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                                       
 
 
                                         <TextBlock Text="Categoria:" FontWeight="Bold"/>

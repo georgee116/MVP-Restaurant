@@ -9,5 +9,6 @@
         <conv:NullToBoolConverter x:Key="NullToBoolConverter"/>
         <conv:GreaterZeroConverter x:Key="GreaterZeroConverter"/>
         <conv:ProductConverter x:Key="ProductConverter"/>
+       
     </Application.Resources>
 </Application>

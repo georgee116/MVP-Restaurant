@@ -15,5 +15,7 @@ namespace Restaurant.Services.Interfaces
         Task<Comanda?> GetComandaByIdAsync(int id);
         Task SchimbaStatusAsync(int comandaId, OrderStatus nouStatus);
         Task AdaugaItemLaComandaAsync(int comandaId, ComandaItem item);
+        Task<IEnumerable<Comanda>> GetAllComenziAsync();
+        Task<IEnumerable<Comanda>> GetComenziForUserAsync(int utilizatorId);
     }
 }

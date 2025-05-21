@@ -23,5 +23,6 @@ namespace Restaurant.Domain.Entities
         public int Cantitate { get; set; }
         public int CantitatePortie { get; set; } // salvează gramajul folosit la comandă
         public decimal PretUnitate { get; set; }   // prețul la momentul efectuării comenzii
+        public decimal Total => PretUnitate * Cantitate;
     }
 }

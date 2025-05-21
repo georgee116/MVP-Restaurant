@@ -8,6 +8,7 @@ namespace Restaurant.UI.Modern
         public MainWindow()
         {
             InitializeComponent();
+
             // DataContext is set in XAML to <vm:MainViewModel/>
         }
     }

@@ -22,5 +22,17 @@ namespace Restaurant.Domain.Entities
         public Utilizator Utilizator { get; set; }
 
         public ICollection<ComandaItem> ComandaItems { get; set; }
+        public decimal ValoareTotala
+        {
+            get
+            {
+                if (ComandaItems == null || !ComandaItems.Any())
+                    return 0;
+
+                decimal totalProduse = ComandaItems.Sum(i => i.PretUnitate * i.Cantitate);
+                return totalProduse - DiscountAplicat + CostTransport;
+            }
+        }
+
     }
 }

@@ -18,7 +18,7 @@ namespace Restaurant.UI.Modern.Converters
                 isNotNull = !isNotNull;
             }
 
-            // Verifică dacă trebuie să convertim la Visibility
+            // Verifică dacă trebuie să convertim la Visibility 
             if (parameter is string paramStr2 && paramStr2 == "Visibility")
             {
                 return isNotNull ? Visibility.Visible : Visibility.Collapsed;

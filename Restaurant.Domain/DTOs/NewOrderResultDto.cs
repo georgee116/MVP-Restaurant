@@ -3,6 +3,6 @@
     public class NewOrderResultDto
     {
         public int ComandaId { get; set; }
-        public string CodUnic { get; set; }
+        public string CodUnic { get; set; } = string.Empty;
     }
 }

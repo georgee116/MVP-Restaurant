@@ -45,6 +45,7 @@ namespace Restaurant.Services.Services
             return await _repo.VerificaStocDisponibilAsync(preparatId, cantitateNecesara);
         }
 
+        
         public async Task ScadeStocAsync(int preparatId, float cantitate)
         {
             var preparat = await _repo.GetByIdAsync(preparatId);

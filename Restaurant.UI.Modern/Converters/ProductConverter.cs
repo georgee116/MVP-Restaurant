@@ -20,7 +20,7 @@ namespace Restaurant.UI.Modern.Converters
             // Convertim prețul
             if (values[0] is decimal d)
                 pret = d;
-            else if (decimal.TryParse(values[0].ToString(), out decimal parsedDecimal))
+            else if (decimal.TryParse(values[0].ToString(), out decimal parsedDecimal)) 
                 pret = parsedDecimal;
             else
                 return 0;

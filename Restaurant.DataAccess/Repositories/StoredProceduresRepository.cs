@@ -44,21 +44,83 @@ namespace Restaurant.DataAccess.Repositories
         }
 
         // 3) Get menu details + totals
+        // 3) Get menu details + totals
         public async Task<(IEnumerable<MeniuDetailDto> Items, MeniuTotalsDto Totals)> GetMeniuDetailsAsync(int meniuId)
         {
             using var ctx = new ApplicationDbContext();
+            var items = new List<MeniuDetailDto>();
+            MeniuTotalsDto totals = new MeniuTotalsDto();
 
-            var items = await ctx.Set<MeniuDetailDto>()
-                                 .FromSqlRaw("EXEC dbo.usp_GetMeniuDetails @MeniuId",
-                                             new SqlParameter("@MeniuId", meniuId))
-                                 .ToListAsync();
+            System.Diagnostics.Debug.WriteLine($"Apel procedură stocată pentru meniul cu ID: {meniuId}");
 
-            var totals = await ctx.Set<MeniuTotalsDto>()
-                                  .FromSqlRaw("EXEC dbo.usp_GetMeniuDetails @MeniuId",
-                                              new SqlParameter("@MeniuId", meniuId))
-                                  .FirstOrDefaultAsync();
+            try
+            {
+                var connection = ctx.Database.GetDbConnection();
+                await connection.OpenAsync();
 
-            return (items, totals!);
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "EXEC dbo.usp_GetMeniuDetails @MeniuId";
+                    var parameter = command.CreateParameter();
+                    parameter.ParameterName = "@MeniuId";
+                    parameter.Value = meniuId;
+                    command.Parameters.Add(parameter);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        System.Diagnostics.Debug.WriteLine("Preparate în meniu:");
+                        int count = 0;
+
+                        while (await reader.ReadAsync())
+                        {
+                            count++;
+                            var item = new MeniuDetailDto
+                            {
+                                MeniuId = Convert.ToInt32(reader["MeniuId"]),
+                                Denumire = reader["Denumire"].ToString(),
+                                Categorie = reader["Categorie"].ToString(),
+                                PreparatId = Convert.ToInt32(reader["PreparatId"]),
+                                Preparat = reader["Preparat"].ToString(),
+                                GramajPortie = Convert.ToSingle(reader["GramajPortie"]),
+                                PretStandard = Convert.ToDecimal(reader["PretStandard"]),
+                                Subtotal = Convert.ToDecimal(reader["Subtotal"])
+                            };
+
+                            items.Add(item);
+
+                            System.Diagnostics.Debug.WriteLine($"  {count}. Preparat: {item.Preparat}, GramajPortie: {item.GramajPortie}, PretStandard: {item.PretStandard}, Subtotal: {item.Subtotal}");
+                        }
+
+                        System.Diagnostics.Debug.WriteLine($"Total preparate găsite: {count}");
+
+                        // Trecem la următorul set de rezultate (totals)
+                        if (await reader.NextResultAsync() && await reader.ReadAsync())
+                        {
+                            System.Diagnostics.Debug.WriteLine("Totals:");
+
+                            totals = new MeniuTotalsDto
+                            {
+                                TotalGramaj = Convert.ToSingle(reader["TotalGramaj"]),
+                                TotalPret = Convert.ToDecimal(reader["TotalPret"])
+                            };
+
+                            System.Diagnostics.Debug.WriteLine($"  TotalGramaj: {totals.TotalGramaj}, TotalPret: {totals.TotalPret}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("Nu există al doilea set de rezultate (Totals)");
+                        }
+                    }
+                }
+
+                return (items, totals);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Eroare la apelul procedurii stocate: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+                return (new List<MeniuDetailDto>(), new MeniuTotalsDto { TotalGramaj = 0, TotalPret = 0 });
+            }
         }
 
         // 4) Remove a preparat from a menu
@@ -79,33 +141,77 @@ namespace Restaurant.DataAccess.Repositories
         }
 
         // 5) Create order + items in one go (TVP)
+        // În StoredProceduresRepository.cs, metoda CreateOrderWithItemsAsync
+        // În StoredProceduresRepository.cs
+        // În StoredProceduresRepository.cs
+
+        // Adăugați aceste using-uri
+
+
         public async Task<NewOrderResultDto> CreateOrderWithItemsAsync(
-            int utilizatorId,
-            decimal discount,
-            decimal costTransport,
-            DataTable itemsTable)
+        int utilizatorId,
+        decimal discount,
+        decimal costTransport,
+        DataTable itemsTable)
         {
             using var ctx = new ApplicationDbContext();
-            var parameters = new[]
+            var result = new NewOrderResultDto();
+
+            try
             {
-                new SqlParameter("@UtilizatorId",  utilizatorId),
-                new SqlParameter("@Discount",      discount),
-                new SqlParameter("@CostTransport", costTransport),
-                new SqlParameter
+                var connection = ctx.Database.GetDbConnection();
+                await connection.OpenAsync();
+
+                // Specificăm că folosim SqlCommand, nu DbCommand
+                using (var command = connection.CreateCommand() as SqlCommand)
                 {
-                    ParameterName = "@TVP_Items",
-                    SqlDbType      = SqlDbType.Structured,
-                    TypeName       = "dbo.TVP_ComandaItem",
-                    Value          = itemsTable
+                    if (command == null)
+                        throw new InvalidOperationException("Conexiunea nu este pentru SQL Server");
+
+                    command.CommandText = "EXEC dbo.usp_CreateOrderWithItems @UtilizatorId, @Discount, @CostTransport, @TVP_Items";
+
+                    // Parametru 1: UtilizatorId
+                    command.Parameters.Add(new SqlParameter("@UtilizatorId", utilizatorId));
+
+                    // Parametru 2: Discount
+                    command.Parameters.Add(new SqlParameter("@Discount", discount));
+
+                    // Parametru 3: CostTransport
+                    command.Parameters.Add(new SqlParameter("@CostTransport", costTransport));
+
+                    // Parametru 4: TVP_Items (Table-Valued Parameter)
+                    var paramTVP = new SqlParameter
+                    {
+                        ParameterName = "@TVP_Items",
+                        Value = itemsTable,
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "dbo.TVP_ComandaItem"
+                    };
+                    command.Parameters.Add(paramTVP);
+
+                    // Executăm procedura stocată și citim rezultatul
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            result.ComandaId = reader.GetInt32(reader.GetOrdinal("ComandaId"));
+                            result.CodUnic = reader.GetString(reader.GetOrdinal("CodUnic"));
+                        }
+                        else
+                        {
+                            throw new Exception("Procedura stocată nu a returnat niciun rezultat");
+                        }
+                    }
                 }
-            };
 
-            var result = await ctx.Set<NewOrderResultDto>()
-                                  .FromSqlRaw("EXEC dbo.usp_CreateOrderWithItems @UtilizatorId, @Discount, @CostTransport, @TVP_Items",
-                                               parameters)
-                                  .FirstAsync();
-
-            return result;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"EROARE în CreateOrderWithItemsAsync: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+                throw;
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Restaurant.UI.Modern.Converters
                     boolValue = !boolValue;
                 }
 
-                return boolValue ? Visibility.Visible : Visibility.Collapsed;
+                return boolValue ? Visibility.Visible : Visibility.Collapsed; 
             }
 
             return Visibility.Collapsed;
