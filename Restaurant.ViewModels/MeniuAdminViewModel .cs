@@ -1,12 +1,9 @@
 ﻿// Restaurant.ViewModels/MeniuAdminViewModel.cs
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Linq;
-using Restaurant.Domain.Entities;
-using Restaurant.Services.Services;
-using Restaurant.ViewModels.Common;
 
 namespace Restaurant.ViewModels
 {
@@ -110,7 +107,7 @@ namespace Restaurant.ViewModels
             {
                 _cantitatePortieMeniu = value;
                 OnPropertyChanged();
-                ((RelayCommand)AddPreparatToMeniuCommand).RaiseCanExecuteChanged();
+                UpdateCommandStates();
             }
         }
 
@@ -125,21 +122,31 @@ namespace Restaurant.ViewModels
         // Constructor
         public MeniuAdminViewModel()
         {
-            // Setup commands
+            // 1. Mai întâi inițializați comenzile
             LoadCommand = new RelayCommand(async _ => await LoadDataAsync());
-            AddCommand = new RelayCommand(async _ => await AddMeniuAsync(), _ => true); // Eliminăm condiția pentru a testa
+            AddCommand = new RelayCommand(async _ => await AddMeniuAsync(), _ => true);
             UpdateCommand = new RelayCommand(async _ => await UpdateMeniuAsync(), _ => SelectedMeniu != null);
             DeleteCommand = new RelayCommand(async _ => await DeleteMeniuAsync(), _ => SelectedMeniu != null);
 
             AddPreparatToMeniuCommand = new RelayCommand(
-                async _ => await AddPreparatToMeniuAsync(),
-                _ => SelectedMeniu != null && SelectedPreparatToAdd != null && CantitatePortieMeniu > 0);
+        async _ =>
+        {
+            if (SelectedMeniu != null && SelectedPreparatToAdd != null)
+            {
+                await AddPreparatToMeniuAsync();
+            }
+        },
+        _ => true  
+    );
 
             RemovePreparatFromMeniuCommand = new RelayCommand(
                 async _ => await RemovePreparatFromMeniuAsync(),
                 _ => SelectedMeniu != null && SelectedPreparatToRemove != null);
 
-            // Load initial data
+            // 2. Apoi setați alte proprietăți cum ar fi CantitatePortieMeniu
+            CantitatePortieMeniu = 100; // Valoare implicită pentru a facilita utilizarea
+
+            // 3. La final, încărcați datele
             _ = LoadDataAsync();
         }
 
@@ -182,6 +189,21 @@ namespace Restaurant.ViewModels
         private bool CanAddMeniu(object _)
         {
             return !string.IsNullOrWhiteSpace(NewMeniuName) && SelectedNewMeniuCategorie != null;
+        }
+
+        private void UpdateCommandStates()
+        {
+            if (AddPreparatToMeniuCommand != null)
+            {
+                ((RelayCommand)AddPreparatToMeniuCommand).RaiseCanExecuteChanged();
+            }
+
+            if (RemovePreparatFromMeniuCommand != null)
+            {
+                ((RelayCommand)RemovePreparatFromMeniuCommand).RaiseCanExecuteChanged();
+            }
+
+            // Alte comenzi după necesitate
         }
 
         private async Task AddMeniuAsync()
@@ -302,24 +324,58 @@ namespace Restaurant.ViewModels
         {
             try
             {
-                if (SelectedMeniu == null || SelectedPreparatToAdd == null || CantitatePortieMeniu <= 0)
+                // Verificarea manuală a tuturor condițiilor
+                if (SelectedMeniu == null)
+                {
+                    System.Windows.MessageBox.Show("Vă rugăm să selectați un meniu!",
+                        "Selecție lipsă", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                     return;
+                }
 
+                if (SelectedPreparatToAdd == null)
+                {
+                    System.Windows.MessageBox.Show("Vă rugăm să selectați un preparat din lista disponibilă!",
+                        "Selecție lipsă", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Verificăm dacă avem o cantitate validă
+                if (CantitatePortieMeniu <= 0)
+                {
+                    System.Windows.MessageBox.Show("Vă rugăm să introduceți o cantitate validă (mai mare de 0)!",
+                        "Cantitate invalidă", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Cod pentru adăugarea efectivă a preparatului în meniu
                 await _preparatMeniuService.AddToMeniuAsync(
                     SelectedMeniu.Id,
                     SelectedPreparatToAdd.Id,
                     CantitatePortieMeniu);
 
-                // Refresh lists
-                LoadMeniuPreparate();
+                // Actualizăm listele direct
+                if (SelectedPreparatToAdd != null)
+                {
+                    // Eliminăm din disponibile
+                    PreparateDisponibile.Remove(SelectedPreparatToAdd);
 
-                // Reset inputs
-                CantitatePortieMeniu = 0;
+                    // Adăugăm în lista de preparate în meniu
+                    // Poate fi necesar să reîncărcăm lista complet pentru a avea cantitatea corectă
+                    LoadMeniuPreparate();
+                }
+
+                // Resetăm pentru următoarea adăugare
                 SelectedPreparatToAdd = null;
+
+                // Confirmăm utilizatorului
+                System.Windows.MessageBox.Show("Preparat adăugat cu succes în meniu!",
+                    "Succes", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error adding preparat to meniu: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Eroare la adăugarea preparatului: {ex.Message}");
+                System.Windows.MessageBox.Show($"Eroare la adăugarea preparatului: {ex.Message}",
+                    "Eroare", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
 
@@ -334,8 +390,6 @@ namespace Restaurant.ViewModels
                     return;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Removing preparat {SelectedPreparatToRemove.Denumire} from meniu {SelectedMeniu.Denumire}");
-
                 // Confirmare ștergere
                 var result = System.Windows.MessageBox.Show(
                     $"Doriți să eliminați preparatul '{SelectedPreparatToRemove.Denumire}' din meniul '{SelectedMeniu.Denumire}'?",
@@ -346,12 +400,21 @@ namespace Restaurant.ViewModels
                 if (result == System.Windows.MessageBoxResult.No)
                     return;
 
-                await _spService.RemovePreparatFromMeniuAsync(SelectedMeniu.Id, SelectedPreparatToRemove.Id);
-                System.Diagnostics.Debug.WriteLine("Preparat removed successfully");
+                // Folosim repository-ul direct în loc de procedura stocată
+                await _preparatMeniuService.RemoveFromMeniuAsync(SelectedMeniu.Id, SelectedPreparatToRemove.Id);
 
-                // Refresh lists
-                LoadMeniuPreparate();
+                // Actualizăm colecțiile
+                var preparatDeSters = SelectedPreparatToRemove;
                 SelectedPreparatToRemove = null;
+
+                // Eliminăm din lista de preparate în meniu
+                PreparateInMeniu.Remove(preparatDeSters);
+
+                // Adăugăm la lista de preparate disponibile dacă nu există deja
+                if (!PreparateDisponibile.Any(p => p.Id == preparatDeSters.Id))
+                {
+                    PreparateDisponibile.Add(preparatDeSters);
+                }
 
                 // Notificare
                 System.Windows.MessageBox.Show("Preparatul a fost eliminat cu succes din meniu!",
@@ -364,5 +427,8 @@ namespace Restaurant.ViewModels
                     "Eroare", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
+        // În MeniuAdminViewModel.cs
+        
     }
+
 }
