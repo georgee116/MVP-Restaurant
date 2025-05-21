@@ -65,6 +65,12 @@ namespace Restaurant.DataAccess.Repositories
         public Task RemovePreparatFromMeniuAsync(int meniuId, int preparatId)
         {
             using var ctx = new ApplicationDbContext();
+            // Asigură-te că conexiunea este deschisă înainte de executare
+            if (ctx.Database.GetDbConnection().State != System.Data.ConnectionState.Open)
+            {
+                ctx.Database.GetDbConnection().Open();
+            }
+
             return ctx.Database.ExecuteSqlRawAsync(
                 "EXEC dbo.usp_RemovePreparatFromMeniu @MeniuId, @PreparatId",
                 new SqlParameter("@MeniuId", meniuId),

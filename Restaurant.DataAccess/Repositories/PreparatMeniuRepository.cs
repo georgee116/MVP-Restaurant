@@ -22,12 +22,20 @@ namespace Restaurant.DataAccess.Repositories
             await ctx.SaveChangesAsync();
         }
 
+        // În PreparatMeniuRepository.cs
         public async Task RemoveFromMeniuAsync(int meniuId, int preparatId)
         {
             using var ctx = new ApplicationDbContext();
-            var link = new PreparatMeniu { MeniuId = meniuId, PreparatId = preparatId };
-            ctx.PreparatMeniuri.Remove(link);
-            await ctx.SaveChangesAsync();
+
+            var link = await ctx.PreparatMeniuri
+                .Where(pm => pm.MeniuId == meniuId && pm.PreparatId == preparatId)
+                .FirstOrDefaultAsync();
+
+            if (link != null)
+            {
+                ctx.PreparatMeniuri.Remove(link);
+                await ctx.SaveChangesAsync();
+            }
         }
 
         public async Task<IEnumerable<PreparatMeniu>> GetPreparatMeniuriAsync(int meniuId)

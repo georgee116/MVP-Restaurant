@@ -106,9 +106,9 @@
                                     <GroupBox Grid.Row="0" Header="Preparate disponibile">
                                         <DockPanel>
                                             <StackPanel DockPanel.Dock="Bottom" Margin="0,5">
-                                                <TextBlock Text="Cantitate porție (g):" Margin="0,0,0,2"/>
-                                                <TextBox Text="{Binding CantitatePortieMeniu, UpdateSourceTrigger=PropertyChanged}" 
-                                             Margin="0,0,0,5"/>
+                                                <TextBox x:Name="txtCantitate" 
+                                                    Text="{Binding CantitatePortieMeniu, UpdateSourceTrigger=PropertyChanged, StringFormat='{}{0:F0}'}" 
+                                                        Margin="0,0,0,5"/>
                                                 <Button Content="Adaugă în meniu" 
                                             Command="{Binding AddPreparatToMeniuCommand}" 
                                             HorizontalAlignment="Right"/>
